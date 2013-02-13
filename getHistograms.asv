@@ -1,0 +1,105 @@
+function [ output ] = getHistograms( midi, timeWindow )
+%UNTITLED2 Gets histograms for note alignment.
+%   Generates pastogram, futurogram and neighbourhood histos.
+
+
+%%
+%{
+For every note, generate a feature vector describing the notes before and
+after it in time (from the entire track). Then take a histogram of the
+attributes. This is the note's attribute list. We use this to find notes
+that correspond to boundaries. Also neighbourhood histo within a time
+window.
+
+%}
+
+
+
+m = size(midi,1);
+for i=1:m,
+ 
+    backwards = [];
+    forwards  = [];
+    
+   %list of previous notes
+   for j = 1:i
+       backwards(j) = midi(j,4);
+   end
+   
+   %list of future notes
+   cnt = 1;
+   for j = i:m
+       forwards(cnt) = midi(j,4);
+       cnt = cnt+1;
+       
+   end
+   
+   %list of notes around this note within the time window
+   currentTime = midi(i,6);
+   lowTime = currentTime - timeWindow;
+   highTime = currentTime + timeWindow;
+   
+   neighbourhood = [];
+   count = 0;
+   for j = 1:m
+       if midi(j,6) > lowTime && midi(j,6) < highTime
+       
+           neighbourhood = midi(j,4);
+           count = count+1;
+       end
+       
+   end
+   
+   
+   noteDesc(i).backwards = backwards;
+   noteDesc(i).forwards = forwards;
+   noteDesc(i).neighbourhood = neighbourhood;
+    
+end
+
+%%
+% plug it into a matrix to plot the histogram changing over time.
+
+histotime_back = [];
+x = 1:1:128;
+for i = 1:length(noteDesc)
+
+    histotime_back(i,:) = hist(noteDesc(i).backwards,x);
+    
+end
+
+histotime_forward = [];
+
+for i = 1:length(noteDesc)
+
+    histotime_forward(i,:) = hist(noteDesc(i).forwards,x);
+    
+end
+
+for i = 1:length(noteDesc)
+
+    histotime_forward(i,:) = hist(noteDesc(i).forwards,x);
+    
+end
+
+
+
+
+
+% ITT we gather all the notes that are within a certain temporal window
+% around this note
+
+%%
+
+output = [];
+output.pastoGram = histotime_back;
+output.futuroGram = histotime_forward;
+
+
+
+
+
+
+
+end
+
